@@ -145,6 +145,7 @@ class TreeInput(TextInput):
 	def __init__(self, **kwargs):
 		super(TreeInput, self).__init__(**kwargs)
 		self.updateTree()
+		self.text_validate_unfocus = False
 
 	def updateTree(self):
 		self.pat = DEFAULT_TRANSDUCER.regExp(main)

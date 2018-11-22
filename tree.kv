@@ -27,5 +27,7 @@
 	TreeInput:
 		id: texte
 		size_hint_x: 0.7
+		multiline: False
 		on_text: td.displayChange = not td.displayChange
+		on_text_validate: self.copy(self.text)
 
