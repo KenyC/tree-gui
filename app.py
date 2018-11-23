@@ -1,6 +1,6 @@
 # APP IMPORTS
 from tree import Tree
-from transducer import QTreeTrans
+from transducer import *
 import re
 
 # KIVY IMPORTS
@@ -22,6 +22,7 @@ from kivy.clock import Clock
 
 # CONSTANTS
 
+# DEFAULT_TRANSDUCER = HaskellTrans
 DEFAULT_TRANSDUCER = QTreeTrans
 SPROUT_DIST = 20.
 POS_ABS_ROOT = (0, 80)

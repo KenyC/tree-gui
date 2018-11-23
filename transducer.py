@@ -18,77 +18,82 @@ testString = "[.{aab} \n\t[.{efzfe} \n\t\t{zddz} \n\t\t[.{4zddz} \n\t\t\t{7dzdz}
 
 # HELPER FUNCTIONS
 def escapeBraces(str):
-	return str.replace("{","\{").replace("}","\}").replace("[","\[").replace("]","\]")
+	return str.replace("{","\{").replace("}","\}").replace("[","\[").replace("]","\]").replace("^","\^").replace("(","\(").replace(")","\)")
 
 # TRANSDUCER
 # Abstract class for tree-to-string transducer
 # To be overloaded:
-# - toUnsat : returns the structure of the tree in string format with formattable blanks, where the labels should be inserted
-# - indicesOrder : look-up table matching the order of appearance in the string with index in Tree structure
+# - toUnsat : returns the structure of the tree in list of strings format formattable blanks, where the labels should be inserted
 # Provided given overloaded methods
 # - toStr : returns the string representation of the tree with its labels
 # - regExp : compiles a regular expression that matches the tree's structure to strings ; 
 #   this regular expression, in combination with indicesOrder, allows recovery of tree labels from string
+# - indicesOrder : returns a look-up list where the i-th value is the index of the node at that position.
 class Transducer:
 
-	# return expressions with formattable blanks
-	def toUnsat(tree):
-		return ""
+	# return expressions with list of strings with labels in place
+	def toUnsat(tree, labels):
+		return labels
 	
 	@classmethod
 	def toStr(cls, tree):
-		return cls.toUnsat(tree).format(*tree.labels)
+		return "".join(cls.toUnsat(tree, tree.labels))
 
 
 	@classmethod
 	def regExp(cls, tree):
-		regexp = escapeBraces(cls.toUnsat(tree).format(*["(.*)" for i in range(tree.n)]))
+		# Create a list with blanks where labels should be
+		blankList = cls.toUnsat(tree, ["" for i in range(tree.n)])
+		regexp = ["(.*)" if s == "" else escapeBraces(s) for s in blankList]
 		#regexp = escapeBraces(cls.toUnsat(tree).format(*["(.*)" for i in range(tree.n)]))
-		return re.compile(regexp)
+		return re.compile("".join(regexp))
 
-	def indicesOrder(tree, index = 0):
-		s = [index]
-
-		for c in tree.children[index]:
-			s += Transducer.indicesOrder(tree, c)
-
-		return s
+	@classmethod
+	def indicesOrder(cls, tree):
+		return list(filter(lambda x: isinstance(x, int), cls.toUnsat(tree, range(tree.n))))
 
 # Daughter class for QTree representation
 class QTreeTrans(Transducer):
 
-	def toUnsat(tree):
+	def toUnsat(tree, labels):
 		
 		def toUnsatRec(tree, idx, space):
 			if not tree.children[idx]:
-				return space*DEFAULT_BLANK_QTREE + "{{{{{idx}}}}} \n".format(idx = "{" + str(idx) + "}")
+				return [space*DEFAULT_BLANK_QTREE + "{", labels[idx], "} \n"]
 			else:
-				returnStr = ""
-				returnStr += space*DEFAULT_BLANK_QTREE + "[.{{{{{idx}}}}} \n".format(idx = "{" + str(idx) + "}")
+				returnStr = []
+				returnStr.append(space*DEFAULT_BLANK_QTREE + "[.{")
+				returnStr.append(labels[idx])
+				returnStr.append("} \n")
 
 				for c in tree.children[idx]:
 					returnStr += toUnsatRec(tree, c, space + 1)
 				
-				returnStr += space*DEFAULT_BLANK_QTREE + "]\n"
+				returnStr.append(space*DEFAULT_BLANK_QTREE + "]\n")
 				return returnStr
 
 		return toUnsatRec(tree, 0, 0)
 
-# class HaskellTrans(Transducer):
+# Daughter class for my Haskell implementation of H&K
+class HaskellTrans(Transducer):
 
-# 	def toUnsat(tree):
-# 		def toUnsatRec(tree, idx, space):
-# 			if not tree.children[idx]:
-# 				return space*DEFAULT_BLANK_HASKELL + "{idx} \n".format(idx = "{" + str(idx) + "}")
-# 			else:
-# 				returnStr = ""
-# 				returnStr += space*DEFAULT_BLANK_QTREE + "({idx} \n".format(idx = "{" + str(idx) + "}")
-# 				returnStr += space*DEFAULT_BLANK_QTREE + "<^>"
-# 				returnStr += space*DEFAULT_BLANK_QTREE + "("
-# 				for c in tree.children[idx]:
-# 					returnStr += toUnsatRec(tree, c, space + 1)
+	def toUnsat(tree, labels):
+		def toUnsatRec(tree, idx, space):
+			if not tree.children[idx]:
+				return [space*DEFAULT_BLANK_HASKELL + "(", labels[idx], ")\n"]
+			else:
+				returnStr = []
+				if idx != 0:
+					returnStr.append(space*DEFAULT_BLANK_HASKELL + "(\n")
+
+				for i,c in enumerate(tree.children[idx]):
+					returnStr += toUnsatRec(tree, c, space + 1)
+					if i != len(tree.children[idx]) - 1:
+						returnStr.append((space + 1)*DEFAULT_BLANK_HASKELL + "  <^>\n")
 				
-# 				returnStr += space*DEFAULT_BLANK_QTREE + "]\n"
-# 				return returnStr
+				if idx != 0:
+					returnStr.append(space*DEFAULT_BLANK_HASKELL + ")\n")
+				
+				return returnStr
 
-# 		return toUnsatRec(tree, 0, 0)
+		return toUnsatRec(tree, 0, 0)

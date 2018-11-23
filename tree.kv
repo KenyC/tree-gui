@@ -8,16 +8,6 @@
 			pos: (self.parent.width-self.width)/2, (self.parent.height-self.height)/2
 			size_hint: None, None
 			size: 0.7 * 800, 0.7 * 600
-			canvas:
-				Color:
-					rgba: 1, 1, 0, 1
-				Line:
-					rectangle: self.pos[0], self.pos[1], self.size[0], self.size[1]
-				Color:
-					rgb: 1,0,1
-				Rectangle:
-					pos: self.center
-					size: self.size
 			on_treeChange: texte.updateTree()
 		# Label:
 		# 	pos: (0, 0)
