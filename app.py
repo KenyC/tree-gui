@@ -139,10 +139,10 @@ class TreeDisplay(Widget):
 				return True
 			# Middle button to grab
 			# Saves initial position of touch and initial center of canvas in absolute coordinates
-			elif "button" in touch.profile and touch.button == "middle":
-				touch.ud["posInit"] = touch.pos
-				touch.ud["initPos"] = self.absX, self.absY
-				return True
+		if "button" in touch.profile and touch.button == "middle":
+			touch.ud["posInit"] = touch.pos
+			touch.ud["initPos"] = self.absX, self.absY
+			return True
 		
 		# If a left or right click, we check whether the event occurs in the vicinity of a node
 		# The notion of vicinity is scaled for zooming
