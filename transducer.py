@@ -72,7 +72,7 @@ class QTreeTrans(Transducer):
 				returnStr.append(space*DEFAULT_BLANK_QTREE + "]\n")
 				return returnStr
 
-		return toUnsatRec(tree, 0, 0)
+		return ["\\Tree \n"] + toUnsatRec(tree, 0, 0)
 
 # Daughter class for my Haskell implementation of H&K
 class HaskellTrans(Transducer):
