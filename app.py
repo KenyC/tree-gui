@@ -16,7 +16,7 @@ from kivy.uix.label import Label
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.widget import Widget
-from kivy.core.window import Window
+from kivy.core.window import Window, Keyboard
 from kivy.graphics import Color, Ellipse, Rectangle, Line
 from kivy.clock import Clock
 
@@ -33,11 +33,9 @@ EXPONENT = 1.1
 # Construction of the default tree
 main = Tree()
 main.sprout(0)
-main.sprout(1)
 main.sprout(2)
 main.sprout(4)
 main.sprout(6)
-
 
 # HELPER FUNCTIONS
 def dist(p1, p2):
@@ -51,11 +49,16 @@ class TreeDisplay(Widget):
 	treeChange = BooleanProperty(False)
 	# Fires event when changes to the display need to be made
 	displayChange = BooleanProperty(False)
+	ctrlHeld = BooleanProperty(False)
 
+	nodeClick = ObjectProperty(None)
 
 	def __init__(self, **kwargs):
 		super(TreeDisplay, self).__init__(**kwargs)
 
+
+		Window.bind(on_key_down = lambda *args: self.setCtrl(args[1], True))
+		Window.bind(on_key_up = lambda *args: self.setCtrl(args[1], False))
 		# Position of canvas center in absolute coordinates
 		self.absCenter = 0, 0 
 		# Zoom level
@@ -66,6 +69,10 @@ class TreeDisplay(Widget):
 
 		# 1s after start, display Tree (why is this needed for proper drawing?)
 		Clock.schedule_once(lambda dt: self.drawTree(main), 60./60.)
+
+	def setCtrl(self, keycode, value):
+		if keycode == 305: # CTRL is 305
+			self.ctrlHeld = value
 
 	# Convenience aliases
 	@property
@@ -148,7 +155,7 @@ class TreeDisplay(Widget):
 		# The notion of vicinity is scaled for zooming
 		for i, p in enumerate(main.positions):
 			if dist(self.toLocal(*p), touch.pos) < SPROUT_DIST / self.scale:
-				if "button" in touch.profile and touch.button == "left":
+				if "button" in touch.profile and touch.button == "left" and not self.ctrlHeld:
 					main.sprout(i)
 					self.treeChange = not self.treeChange
 					return True
@@ -156,6 +163,13 @@ class TreeDisplay(Widget):
 					main.delete(i)
 					self.treeChange = not self.treeChange
 					return True
+	def on_touch_up(self, touch):
+
+		if self.ctrlHeld:
+			for i, p in enumerate(main.positions):
+				if dist(self.toLocal(*p), touch.pos) < SPROUT_DIST / self.scale:
+						if "button" in touch.profile and touch.button == "left":
+							self.nodeClick.ctrlTap(i)
 
 	# For middle mouse grab
 	def on_touch_move(self, touch):
@@ -179,6 +193,11 @@ class TreeDisplay(Widget):
 
 	def zoom(self, value):
 		self.scale *= EXPONENT**(value)
+
+	def clearLabels(self):
+		main.labels = ["" for i in range(main.n)]
+		self.displayChange = not self.displayChange
+		self.nodeClick.updateTree()
 
 
 # Right widget : displays the tree in string format and allows input of labels
@@ -229,6 +248,12 @@ class TreeInput(TextInput):
 			for i, g in enumerate(groups):
 				main.labels[inds[i]] = g
 
+	def ctrlTap(self, idx):
+		self.cursor = self.get_cursor_from_index(DEFAULT_TRANSDUCER.find(main, idx))
+		Clock.schedule_once(lambda dt: self.setFocus())
+
+	def setFocus(self):
+		self.focus = True
 
 
 class MainWindow(BoxLayout):

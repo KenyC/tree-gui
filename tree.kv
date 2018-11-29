@@ -5,19 +5,28 @@
 	RelativeLayout:
 		TreeDisplay:
 			id: td
+			nodeClick: texte
 			pos: (self.parent.width-self.width)/2, (self.parent.height-self.height)/2
 			size_hint: None, None
 			size: 0.7 * 800, 0.7 * 600
 			on_treeChange: texte.updateTree()
+			
+		# DEBUG LABEL
 		# Label:
 		# 	pos: (0, 0)
-		# 	on_touch_down: self.text = str(args[1].pos)
+		# 	text: str(td.ctrlHeld)
 		
-
-	TreeInput:
-		id: texte
+	BoxLayout:
+		orientation: 'vertical'
 		size_hint_x: 0.7
-		multiline: False
-		on_text: td.displayChange = not td.displayChange
-		on_text_validate: self.copy(self.text)
-
+		TreeInput:
+			id: texte
+			multiline: False
+			on_text: td.displayChange = not td.displayChange
+			on_text_validate: self.copy(self.text)
+		BoxLayout:
+			size_hint_y: 0.1
+			orientation: 'horizontal'
+			Button: # CLEAR BUTTON
+				text: "C"
+				on_press: td.clearLabels()

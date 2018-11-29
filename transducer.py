@@ -13,12 +13,15 @@ testTree.sprout(2)
 testTree.sprout(4)
 testTree.sprout(6)
 
-testString = "[.{aab} \n\t[.{efzfe} \n\t\t{zddz} \n\t\t[.{4zddz} \n\t\t\t{7dzdz} \n\t\t\t{dzdz8zdzd} \n\t\t]\n\t]\n\t[.{zazd2dzzd} \n\t\t{dzzd5zddz} \n\t\t[.{dd6ddzzd} \n\t\t\t{dzdz9dzzd} \n\t\t\t{dzdz10zdz} \n\t\t]\n\t]\n]\n"
+testTree2 = testTree.copy()
+testTree2.labels = ["efz","ezfefz","joi","ohiho","trl","cvj","gjph","trb","erb","reh","gzr"]
 
+testString = "\\Tree \n[.{aab} \n\t[.{efzfe} \n\t\t{zddz} \n\t\t[.{4zddz} \n\t\t\t{7dzdz} \n\t\t\t{dzdz8zdzd} \n\t\t]\n\t]\n\t[.{zazd2dzzd} \n\t\t{dzzd5zddz} \n\t\t[.{dd6ddzzd} \n\t\t\t{dzdz9dzzd} \n\t\t\t{dzdz10zdz} \n\t\t]\n\t]\n]\n"
+testString2 = "\\Tree \n[.{} \n\t[.{} \n\t\t{} \n\t\t[.{} \n\t\t\t{} \n\t\t\t{} \n\t\t]\n\t]\n\t[.{} \n\t\t{} \n\t\t[.{} \n\t\t\t{} \n\t\t\t{} \n\t\t]\n\t]\n]\n"
 
 # HELPER FUNCTIONS
 def escapeBraces(str):
-	return str.replace("{","\{").replace("}","\}").replace("[","\[").replace("]","\]").replace("^","\^").replace("(","\(").replace(")","\)")
+	return str.replace("\\", "\\\\").replace("{","\{").replace("}","\}").replace("[","\[").replace("]","\]").replace("^","\^").replace("(","\(").replace(")","\)")
 
 # TRANSDUCER
 # Abstract class for tree-to-string transducer
@@ -52,6 +55,13 @@ class Transducer:
 	def indicesOrder(cls, tree):
 		return list(filter(lambda x: isinstance(x, int), cls.toUnsat(tree, range(tree.n))))
 
+	@classmethod
+	def find(cls, tree, i):
+		listStr = cls.toUnsat(tree, range(tree.n))
+		index = next( (j for j,x in enumerate(listStr) if isinstance(x, int) and x == i), -1)
+		fillLabel = [tree.labels[word] if isinstance(word, int) else word for word in listStr]
+		return len("".join(fillLabel[:index]))
+
 # Daughter class for QTree representation
 class QTreeTrans(Transducer):
 
@@ -72,7 +82,8 @@ class QTreeTrans(Transducer):
 				returnStr.append(space*DEFAULT_BLANK_QTREE + "]\n")
 				return returnStr
 
-		return ["\\Tree \n"] + toUnsatRec(tree, 0, 0)
+		return ["\\Tree ","\n"] + toUnsatRec(tree, 0, 0)
+
 
 # Daughter class for my Haskell implementation of H&K
 class HaskellTrans(Transducer):

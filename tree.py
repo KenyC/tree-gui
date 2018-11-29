@@ -8,16 +8,48 @@
 # Always make sure that children always come after fathers
 class Tree:
 
-	def __init__(self, label = ""):
+	def __init__(self, label = "", children = None):
 		self.labels = [label]
-		self.children = [[]]
+		if children is None:
+			self.children = [[]]
+		else:
+			self.children = children
 
 	# Add two children to a leaf, labels optional
+	# Or adds a parent to an internal node
 	def sprout(self, idx, labelL = "", labelR = ""):
 		if not self.children[idx]:
 			self.labels += [labelL, labelR]
 			self.children[idx] += [self.n , self.n + 1]
 			self.children += [[],[]]
+		else:
+			iFather = self.father(idx)
+			
+			self.insert_child(idx, labelR, [idx])
+
+			if iFather != -1:
+				self.children[iFather] = [idx if x == idx + 1 else x for x in self.children[iFather]]
+
+			self.labels.append(labelL)
+			self.children.append([])
+
+			self.children[idx] = [self.n - 1] + self.children[idx]
+	
+	def father(self, idx):
+		return (next( (j for j, child in enumerate(self.children) if idx in child), -1))
+
+	def insert_child(self, idx, label = "", children = None):
+		lookUpFun = lambda i: i if i < idx else (i + 1)
+
+		if children is None:
+			ch = []
+		else:
+			ch = list(map(lookUpFun, children))
+
+		self.children = [list(map(lookUpFun, child)) for child in self.children]
+		self.children.insert(idx, ch)
+		self.labels.insert(idx, label)
+
 
 	@property
 	def n(self):
@@ -59,7 +91,7 @@ class Tree:
 
 	# Prints simple representation of tree in string format (for debugging purposes)
 	def show(self, idx = 0, space = 0):
-		print(space*" "+ str(idx) if self.labels[idx] == "" else self.labels[idx])
+		print(space*" "+ (str(idx) if self.labels[idx] == "" else self.labels[idx]))
 		for c in self.children[idx]:
 			self.show(c, space + 1)
 
@@ -104,6 +136,9 @@ class Tree:
 				ecartPos = parentPos[0] - sum(self.positions[c][0] for c in self.children[i]) / (len(self.children[i]))
 				for c in self.children[i]:
 					self.positions[c] = (self.positions[c][0] + ecartPos, self.positions[c][1])
+
+	def copy(self):
+		return Tree(self.labels[:],[child[:] for child in self.children])
 	
 
 
