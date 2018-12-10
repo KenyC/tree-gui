@@ -60,7 +60,8 @@ class Transducer:
 		listStr = cls.toUnsat(tree, range(tree.n))
 		index = next( (j for j,x in enumerate(listStr) if isinstance(x, int) and x == i), -1)
 		fillLabel = [tree.labels[word] if isinstance(word, int) else word for word in listStr]
-		return len("".join(fillLabel[:index]))
+		beginning = len("".join(fillLabel[:index]))
+		return {"start": beginning, "end": beginning + len(tree.labels[i])}
 
 # Daughter class for QTree representation
 class QTreeTrans(Transducer):

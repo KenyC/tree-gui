@@ -249,11 +249,12 @@ class TreeInput(TextInput):
 				main.labels[inds[i]] = g
 
 	def ctrlTap(self, idx):
-		self.cursor = self.get_cursor_from_index(DEFAULT_TRANSDUCER.find(main, idx))
-		Clock.schedule_once(lambda dt: self.setFocus())
+		Clock.schedule_once(lambda dt: self.setSelect(**DEFAULT_TRANSDUCER.find(main, idx)))
 
-	def setFocus(self):
+	def setSelect(self, start, end):
 		self.focus = True
+		self.cursor = self.get_cursor_from_index(end)
+		self.select_text(start, end)
 
 
 class MainWindow(BoxLayout):
