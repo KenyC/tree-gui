@@ -109,3 +109,25 @@ class HaskellTrans(Transducer):
 				return returnStr
 
 		return toUnsatRec(tree, 0, 0)
+
+# Daughter class for forest
+class ForestTrans(Transducer):
+
+	def toUnsat(tree, labels):
+		
+		def toUnsatRec(tree, idx, space):
+			if not tree.children[idx]:
+				return [space*DEFAULT_BLANK_QTREE + "[", labels[idx], "] \n"]
+			else:
+				returnStr = []
+				returnStr.append(space*DEFAULT_BLANK_QTREE + "[{")
+				returnStr.append(labels[idx])
+				returnStr.append("} \n")
+
+				for c in tree.children[idx]:
+					returnStr += toUnsatRec(tree, c, space + 1)
+				
+				returnStr.append(space*DEFAULT_BLANK_QTREE + "]\n")
+				return returnStr
+
+		return ["\\begin{forest}\n"] + toUnsatRec(tree, 0, 0) + ["\\end{forest}\n"]

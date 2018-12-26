@@ -1,11 +1,13 @@
 # TreeMaker
 
+TreeMaker helps you create trees by simple clicks for use in LateX.
+
 ## Requirements
 
 - Python 3.4
 - Kivy 1.10.1
 
-## EXE 
+## EXE (for Windows only)
 
 A package version with a *.exe* is available in TreeMaker.zip ; just unzip it on your computer and run the executable.
 

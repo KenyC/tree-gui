@@ -1,6 +1,8 @@
 
 
 <MainWindow>:
+	treeDisplay: td
+	treeLabel: texte
 	orientation: "horizontal"
 	RelativeLayout:
 		TreeDisplay:
@@ -19,14 +21,20 @@
 	BoxLayout:
 		orientation: 'vertical'
 		size_hint_x: 0.7
+		BoxLayout:
+			size_hint_y: 0.1
+			orientation: 'horizontal'
+			Spinner:
+				text: "QTree"
+				values: ("QTree", "Tikz-QTree", "Forest", "Haskell")
+				on_text: texte.changeTransducer(args[1])
+				size_hint_x: 1.5
+			Button: # CLEAR BUTTON
+				text: "C"
+				on_press: td.clearLabels()
 		TreeInput:
 			id: texte
 			multiline: False
 			on_text: td.displayChange = not td.displayChange
 			on_text_validate: self.copy(self.text)
-		BoxLayout:
-			size_hint_y: 0.1
-			orientation: 'horizontal'
-			Button: # CLEAR BUTTON
-				text: "C"
-				on_press: td.clearLabels()
+

@@ -1,6 +1,8 @@
 # APP IMPORTS
 from tree import Tree
+from cst import *
 from transducer import *
+from events import *
 import re
 
 # KIVY IMPORTS
@@ -20,13 +22,7 @@ from kivy.core.window import Window, Keyboard
 from kivy.graphics import Color, Ellipse, Rectangle, Line
 from kivy.clock import Clock
 
-# CONSTANTS
 
-# DEFAULT_TRANSDUCER = HaskellTrans
-DEFAULT_TRANSDUCER = QTreeTrans
-SPROUT_DIST = 20.
-POS_ABS_ROOT = (0, 80)
-EXPONENT = 1.1
 
 # MAIN CODE
 
@@ -37,19 +33,17 @@ main.sprout(2)
 main.sprout(4)
 main.sprout(6)
 
-# HELPER FUNCTIONS
-def dist(p1, p2):
-	return ((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)**0.5
+
 
 
 # Left widget: displays tree in Canvas
-
 class TreeDisplay(Widget):
 	# Fires event when structural changes were made to the tree
 	treeChange = BooleanProperty(False)
 	# Fires event when changes to the display need to be made
 	displayChange = BooleanProperty(False)
 	ctrlHeld = BooleanProperty(False)
+	altHeld = BooleanProperty(False)
 
 	nodeClick = ObjectProperty(None)
 
@@ -57,8 +51,7 @@ class TreeDisplay(Widget):
 		super(TreeDisplay, self).__init__(**kwargs)
 
 
-		Window.bind(on_key_down = lambda *args: self.setCtrl(args[1], True))
-		Window.bind(on_key_up = lambda *args: self.setCtrl(args[1], False))
+
 		# Position of canvas center in absolute coordinates
 		self.absCenter = 0, 0 
 		# Zoom level
@@ -70,9 +63,11 @@ class TreeDisplay(Widget):
 		# 1s after start, display Tree (why is this needed for proper drawing?)
 		Clock.schedule_once(lambda dt: self.drawTree(main), 60./60.)
 
-	def setCtrl(self, keycode, value):
-		if keycode == 305: # CTRL is 305
-			self.ctrlHeld = value
+	# def setCtrl(self, keycode, value):
+	# 	if keycode == 305: # CTRL is 305
+	# 		self.ctrlHeld = value
+	# 	elif keycode == 308: # ALT is 308
+	# 		self.altHeld = value
 
 	# Convenience aliases
 	@property
@@ -137,50 +132,7 @@ class TreeDisplay(Widget):
 
 
 
-	def on_touch_down(self, touch):
-		if self.collide_point(*touch.pos):
-			# Scrolling zooms in
-			if touch.is_mouse_scrolling:
-				self.zoom(1. if touch.button == "scrollup" else -1.)
-				self.displayChange = not self.displayChange
-				return True
-			# Middle button to grab
-			# Saves initial position of touch and initial center of canvas in absolute coordinates
-		if "button" in touch.profile and touch.button == "middle":
-			touch.ud["posInit"] = touch.pos
-			touch.ud["initPos"] = self.absX, self.absY
-			return True
-		
-		# If a left or right click, we check whether the event occurs in the vicinity of a node
-		# The notion of vicinity is scaled for zooming
-		for i, p in enumerate(main.positions):
-			if dist(self.toLocal(*p), touch.pos) < SPROUT_DIST / self.scale:
-				if "button" in touch.profile and touch.button == "left" and not self.ctrlHeld:
-					main.sprout(i)
-					self.treeChange = not self.treeChange
-					return True
-				elif "button" in touch.profile and touch.button == "right":
-					main.delete(i)
-					self.treeChange = not self.treeChange
-					return True
-	def on_touch_up(self, touch):
 
-		if self.ctrlHeld:
-			for i, p in enumerate(main.positions):
-				if dist(self.toLocal(*p), touch.pos) < SPROUT_DIST / self.scale:
-						if "button" in touch.profile and touch.button == "left":
-							self.nodeClick.ctrlTap(i)
-
-	# For middle mouse grab
-	def on_touch_move(self, touch):
-		if "button" in touch.profile and touch.button == "middle":
-			# Compute the displacement vector between original position of touch and current position of touch in absolute coordinates
-			displacement = self.toAbsS(touch.ud["posInit"][0] - touch.pos[0], touch.ud["posInit"][1] - touch.pos[1])
-			# Add displacement vector to initial position of canvas center
-			# So that the point where the middle mouse click was initiated is exactly where the mouse currently is
-			self.absCenter = touch.ud["initPos"][0] + displacement[0], touch.ud["initPos"][1] + displacement[1]
-			# Refresh display
-			self.displayChange = not self.displayChange
 	
 	# Event handler when structural modifications have been made to the tree
 	def on_treeChange(self, instance, pos):
@@ -215,7 +167,7 @@ class TreeInput(TextInput):
 
 	def updateTree(self):
 		# Get RegExp associated with tree
-		# This is an expression that matches any string that represents a tree identical to main, except possibly for the labels
+		# This is an expression that matches any string that represents a tree identical to `main`, except possibly for the labels
 		self.pat = DEFAULT_TRANSDUCER.regExp(main)
 		# This is the actual string representation of the tree
 		self.text = DEFAULT_TRANSDUCER.toStr(main) 
@@ -247,6 +199,7 @@ class TreeInput(TextInput):
 			# Modify the labels
 			for i, g in enumerate(groups):
 				main.labels[inds[i]] = g
+		
 
 	def ctrlTap(self, idx):
 		Clock.schedule_once(lambda dt: self.setSelect(**DEFAULT_TRANSDUCER.find(main, idx)))
@@ -256,14 +209,31 @@ class TreeInput(TextInput):
 		self.cursor = self.get_cursor_from_index(end)
 		self.select_text(start, end)
 
+	def changeTransducer(self, transLabel):
+		global DEFAULT_TRANSDUCER
+		if transLabel in DICT_TRANSDUCER:
+			DEFAULT_TRANSDUCER = DICT_TRANSDUCER[transLabel]
+			self.updateTree()
+
 
 class MainWindow(BoxLayout):
-	pass
+	treeDisplay = ObjectProperty(None)
+	treeLabel = ObjectProperty(None)
+
+	def __init__(self,**kwargs):
+		super(MainWindow, self).__init__(**kwargs)
+
+		self.deadkey = DeadKeyManager()
+		self.zoom = ZoomManager(self.treeDisplay)
+		self.pan = PanManager(self.treeDisplay)
+		self.addremovenodes = AddRemoveNodeManager(self.treeDisplay, main, self.deadkey)
+		self.changelabel = ChangeLabelManager(self.treeDisplay, self.treeLabel, self.deadkey, main)
+
 
 class TreeApp(App):
 
-    def build(self):
-        return MainWindow()
+	def build(self):
+		return MainWindow()
 
 
 if __name__ == '__main__':
