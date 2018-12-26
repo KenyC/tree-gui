@@ -22,7 +22,10 @@ from kivy.core.window import Window, Keyboard
 from kivy.graphics import Color, Ellipse, Rectangle, Line
 from kivy.clock import Clock
 
+# GLOBAL TRANSDUCER VARIABLE
 
+transducer = QTreeTrans
+# transducer = HaskellTrans
 
 # MAIN CODE
 
@@ -35,17 +38,12 @@ main.sprout(6)
 
 
 
-
 # Left widget: displays tree in Canvas
 class TreeDisplay(Widget):
 	# Fires event when structural changes were made to the tree
 	treeChange = BooleanProperty(False)
 	# Fires event when changes to the display need to be made
 	displayChange = BooleanProperty(False)
-	ctrlHeld = BooleanProperty(False)
-	altHeld = BooleanProperty(False)
-
-	nodeClick = ObjectProperty(None)
 
 	def __init__(self, **kwargs):
 		super(TreeDisplay, self).__init__(**kwargs)
@@ -62,12 +60,6 @@ class TreeDisplay(Widget):
 
 		# 1s after start, display Tree (why is this needed for proper drawing?)
 		Clock.schedule_once(lambda dt: self.drawTree(main), 60./60.)
-
-	# def setCtrl(self, keycode, value):
-	# 	if keycode == 305: # CTRL is 305
-	# 		self.ctrlHeld = value
-	# 	elif keycode == 308: # ALT is 308
-	# 		self.altHeld = value
 
 	# Convenience aliases
 	@property
@@ -168,9 +160,9 @@ class TreeInput(TextInput):
 	def updateTree(self):
 		# Get RegExp associated with tree
 		# This is an expression that matches any string that represents a tree identical to `main`, except possibly for the labels
-		self.pat = DEFAULT_TRANSDUCER.regExp(main)
+		self.pat = transducer.regExp(main)
 		# This is the actual string representation of the tree
-		self.text = DEFAULT_TRANSDUCER.toStr(main) 
+		self.text = transducer.toStr(main) 
 
 	# Disallow modification of the structure of the tree in the text input
 	def insert_text(self, substring, from_undo = False):
@@ -194,7 +186,7 @@ class TreeInput(TextInput):
 			# Labels are obtained from the regexp in the linear order in which they are displayed
 			# This may not be the order in which they are stored
 			# We compute a table that matches linear order position to stored position
-			inds = DEFAULT_TRANSDUCER.indicesOrder(main)
+			inds = transducer.indicesOrder(main)
 
 			# Modify the labels
 			for i, g in enumerate(groups):
@@ -202,7 +194,7 @@ class TreeInput(TextInput):
 		
 
 	def ctrlTap(self, idx):
-		Clock.schedule_once(lambda dt: self.setSelect(**DEFAULT_TRANSDUCER.find(main, idx)))
+		Clock.schedule_once(lambda dt: self.setSelect(**transducer.find(main, idx)))
 
 	def setSelect(self, start, end):
 		self.focus = True
@@ -210,9 +202,9 @@ class TreeInput(TextInput):
 		self.select_text(start, end)
 
 	def changeTransducer(self, transLabel):
-		global DEFAULT_TRANSDUCER
+		global transducer
 		if transLabel in DICT_TRANSDUCER:
-			DEFAULT_TRANSDUCER = DICT_TRANSDUCER[transLabel]
+			transducer = DICT_TRANSDUCER[transLabel]
 			self.updateTree()
 
 
