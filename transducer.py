@@ -3,6 +3,7 @@ import re
 
 #Constants
 DEFAULT_BLANK_QTREE = "\t"
+DEFAULT_BLANK_PYTHON = "\t"
 DEFAULT_BLANK_HASKELL = "   "
 
 # Test values for debugging
@@ -21,7 +22,7 @@ testString2 = "\\Tree \n[.{} \n\t[.{} \n\t\t{} \n\t\t[.{} \n\t\t\t{} \n\t\t\t{} 
 
 # HELPER FUNCTIONS
 def escapeBraces(str):
-	return str.replace("\\", "\\\\").replace("{","\{").replace("}","\}").replace("[","\[").replace("]","\]").replace("^","\^").replace("(","\(").replace(")","\)")
+	return str.replace("\\", "\\\\").replace("{","\{").replace("}","\}").replace("[","\[").replace("]","\]").replace("^","\^").replace("(","\(").replace(")","\)").replace("+","\+")
 
 # TRANSDUCER
 # Abstract class for tree-to-string transducer
@@ -131,3 +132,29 @@ class ForestTrans(Transducer):
 				return returnStr
 
 		return ["\\begin{forest}\n"] + toUnsatRec(tree, 0, 0) + ["\\end{forest}\n"]
+
+# Daughter class for my Python implementation of H&K
+class PythonTrans(Transducer):
+
+	def toUnsat(tree, labels):
+		def toUnsatRec(tree, idx, space):
+			if not tree.children[idx]:
+				return [space*DEFAULT_BLANK_PYTHON + "(", labels[idx], ")"]
+			else:
+				returnStr = []
+				if idx != 0:
+					returnStr.append(space*DEFAULT_BLANK_PYTHON + "(\n")
+
+				for i,c in enumerate(tree.children[idx]):
+					returnStr += toUnsatRec(tree, c, space + 1)
+					if i != len(tree.children[idx]) - 1:
+						returnStr.append("  +\\\n")
+					else:
+						returnStr.append("  \n")
+				
+				if idx != 0:
+					returnStr.append(space*DEFAULT_BLANK_PYTHON + ")")
+				
+				return returnStr
+
+		return toUnsatRec(tree, 0, -1)
