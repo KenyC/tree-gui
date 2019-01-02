@@ -29,10 +29,10 @@ If you want to export to other formats, you just have to:
 
 1. Derive a class from Transducer (transducer.py).
 2. Overload Unsat : it takes a tree and a list of labels for it as an argument and returns a list of strings of the form: "[... , labels[0], ... , labels[1], ...  .... ]", which when joined, gives the string representation of the tree with the provided list of labels.
-3. In app.py, import the class you defined.
-4. Modify the definition of DEFAULT_TRANSDUCER and assign it to your class.
+3. In *cst.py*, import the class you defined.
+4. Register your class in the DICT_TRANSDUCER dictionary
 ```python
-DEFAULT_TRANSDUCER = MyCustomTransducer
+DICT_TRANSDUCER["DISPLAYED NAME OF TRANDUCER"] = NAME_OF_TRANSDUCER_CLASS
 ```
 
 ## Note
