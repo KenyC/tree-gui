@@ -93,7 +93,8 @@ class TreeDisplay(Widget):
 	def drawTree(self, tree): 
 		self.canvas.clear()
 
-		defaults = {"radiusPts": 10., "thickLines": 2, "colorDots" : (1,0,0), "fontSize": 10, "colorText": (0, 1, 0)}
+		defaults = {"radiusPts": 10., "thickLines": 2, "colorDots" : (1,0,0), "fontSize": FONT_SIZE_TREE_DISPLAY,
+					 "colorText": (0, 1, 0), "gapTextNode": 10}
 
 		# Convert node positions in canvas coordinates
 		lPos = [self.toLocal(*p) for p in tree.positions]
@@ -118,9 +119,14 @@ class TreeDisplay(Widget):
 
 		# Display labels
 		for i in range(tree.n):
+
+			# Create Label
 			l = CoreLabel(text = tree.labels[i], font_size = defaults["fontSize"])
 			l.refresh()
-			self.canvas.add(Rectangle(size = l.texture.size, pos = lPos[i], texture = l.texture))
+
+			#Place it
+			displayPos = lPos[i][0] - l.texture.size[0] // 2, lPos[i][1] - l.texture.size[1] - defaults["gapTextNode"]
+			self.canvas.add(Rectangle(size = l.texture.size, pos = displayPos, texture = l.texture))
 
 
 
