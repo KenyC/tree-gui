@@ -1,4 +1,5 @@
 from tree import Tree
+import utils
 import re
 
 #Constants
@@ -6,19 +7,6 @@ DEFAULT_BLANK_QTREE = "\t"
 DEFAULT_BLANK_PYTHON = "\t"
 DEFAULT_BLANK_HASKELL = "   "
 
-# Test values for debugging
-testTree = Tree()
-testTree.sprout(0)
-testTree.sprout(1)
-testTree.sprout(2)
-testTree.sprout(4)
-testTree.sprout(6)
-
-testTree2 = testTree.copy()
-testTree2.labels = ["efz","ezfefz","joi","ohiho","trl","cvj","gjph","trb","erb","reh","gzr"]
-
-testString = "\\Tree \n[.{aab} \n\t[.{efzfe} \n\t\t{zddz} \n\t\t[.{4zddz} \n\t\t\t{7dzdz} \n\t\t\t{dzdz8zdzd} \n\t\t]\n\t]\n\t[.{zazd2dzzd} \n\t\t{dzzd5zddz} \n\t\t[.{dd6ddzzd} \n\t\t\t{dzdz9dzzd} \n\t\t\t{dzdz10zdz} \n\t\t]\n\t]\n]\n"
-testString2 = "\\Tree \n[.{} \n\t[.{} \n\t\t{} \n\t\t[.{} \n\t\t\t{} \n\t\t\t{} \n\t\t]\n\t]\n\t[.{} \n\t\t{} \n\t\t[.{} \n\t\t\t{} \n\t\t\t{} \n\t\t]\n\t]\n]\n"
 
 # HELPER FUNCTIONS
 def escapeBraces(str):
@@ -85,6 +73,60 @@ class QTreeTrans(Transducer):
 				return returnStr
 
 		return ["\\Tree ","\n"] + toUnsatRec(tree, 0, 0)
+
+	def parse(string):
+
+		
+		stack = []
+		countBracket = 0
+		lastTree = None
+
+		for c in string:
+
+
+
+			if c == "}":
+				# collapse literals till "{"
+
+				topChar = ""
+				while stack[-1] != "{":
+					stack[-1] += topChar
+					topChar = stack.pop()
+
+				stack.pop() 
+				stack.append("{" + topChar + "}")
+				countBracket -= 1
+
+			elif c == "]" and countBracket == 0:
+				elemTrees = []
+
+
+				while len(elemTrees) != 3:
+					topElem = stack.pop()
+
+					if isinstance(topElem, Tree):
+						elemTrees.append(topElem)
+					elif topElem[0] == "{" and topElem[-1] == "}":
+						elemTrees.append(Tree(label = topElem[1:-1]))
+
+				topElem = ""
+				while topElem != "[":
+					topElem = stack.pop()
+
+				elemTrees[2] = elemTrees[2].labels[0]
+				lastTree = Tree.fromTrees(elemTrees[:-1][::-1], label = elemTrees[2])
+				stack.append(lastTree)
+
+			else:
+				stack.append(c)
+				if c == "{":
+					countBracket += 1
+
+		return lastTree
+
+
+
+
 
 
 # Daughter class for my Haskell implementation of H&K
@@ -158,3 +200,26 @@ class PythonTrans(Transducer):
 				return returnStr
 
 		return toUnsatRec(tree, 0, -1)
+
+if __name__ == "__main__":
+	string = r"""
+	\Tree
+	[.{fezfe}
+	[.{efz} {efz} {ezfe}]
+	[.{zfeef} {efzef}  [.{fez} {zefef} {ezfef} ]]
+	]
+	"""
+
+	# Test values for debugging
+	testTree = Tree()
+	testTree.sprout(0)
+	testTree.sprout(1)
+	testTree.sprout(2)
+	testTree.sprout(4)
+	testTree.sprout(6)
+
+	testTree2 = testTree.copy()
+	testTree2.labels = ["efz","ezfefz","joi","ohiho","trl","cvj","gjph","trb","erb","reh","gzr"]
+
+	testString = "\\Tree \n[.{aab} \n\t[.{efzfe} \n\t\t{zddz} \n\t\t[.{4zddz} \n\t\t\t{7dzdz} \n\t\t\t{dzdz8zdzd} \n\t\t]\n\t]\n\t[.{zazd2dzzd} \n\t\t{dzzd5zddz} \n\t\t[.{dd6ddzzd} \n\t\t\t{dzdz9dzzd} \n\t\t\t{dzdz10zdz} \n\t\t]\n\t]\n]\n"
+	testString2 = "\\Tree \n[.{} \n\t[.{} \n\t\t{} \n\t\t[.{} \n\t\t\t{} \n\t\t\t{} \n\t\t]\n\t]\n\t[.{} \n\t\t{} \n\t\t[.{} \n\t\t\t{} \n\t\t\t{} \n\t\t]\n\t]\n]\n"

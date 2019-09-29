@@ -1,0 +1,15 @@
+<PopupImport>:
+	texte: inputT.text
+	textInput: inputT
+	title: "Type tree"
+	size: (400, 400)
+	BoxLayout:
+		orientation: 'vertical'
+		TextInput:
+			id: inputT
+			size_hint_y: 0.9
+			on_text_validate: root.dismiss_import()
+		Button:
+			text: "Import"
+			size_hint_y: 0.1
+			on_press: root.dismiss_import()

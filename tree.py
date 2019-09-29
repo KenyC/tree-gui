@@ -8,6 +8,23 @@
 # Always make sure that children always come after fathers
 class Tree:
 
+	def fromTrees(children, label = ""):
+		
+		sums = [1]
+
+		for child in children[:-1]:
+			sums.append(sums[-1] + child.n)
+
+		nodes = [[subnode + increment for subnode in node] for increment, child in zip(sums, children) for node in child.children]
+		labels = sum([child.labels for child in children], [label])
+
+		t = Tree() 		
+		t.children = [sums] + nodes
+		t.labels = labels
+
+		return t
+
+
 	def __init__(self, label = "", children = None):
 		self.labels = [label]
 		if children is None:
@@ -139,7 +156,19 @@ class Tree:
 
 	def copy(self):
 		return Tree(self.labels[:],[child[:] for child in self.children])
+
+	def set(self, tree):
+		self.children = tree.children
+		self.labels = tree.labels
 	
 
 
 
+if __name__ == "__main__":
+	t1 = Tree(label = "t1.0")
+	t1.sprout(0, labelL = "t1.1", labelR = "t1.2")
+	t1.sprout(1, labelL = "t1.3", labelR = "t1.4")
+
+	t2 = Tree(label = "t2.0")
+	t2.sprout(0, labelL = "t2.1", labelR = "t2.2")
+	t2.sprout(2, labelL = "t2.3", labelR = "t2.4")

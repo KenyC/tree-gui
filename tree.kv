@@ -28,13 +28,21 @@
 				text: "QTree"
 				values: DICT_TRANSDUCER.keys()
 				on_text: texte.changeTransducer(args[1])
-				size_hint_x: 1.5
+				size_hint_x: 0.7
 			Button: # CLEAR BUTTON
 				text: "C"
 				on_press: td.clearLabels()
+				size_hint_x: 0.15
+			Button: # CLEAR BUTTON
+				size_hint_x: 0.15
+				on_press: root.importTree.createPopUp()
+				text: "I"
 		TreeInput:
 			id: texte
 			multiline: False
 			on_text: td.displayChange = not td.displayChange
 			on_text_validate: self.copy(self.text)
+
+
+
 

@@ -213,6 +213,11 @@ class TreeInput(TextInput):
 			transducer = DICT_TRANSDUCER[transLabel]
 			self.updateTree()
 
+	@property
+	def transd(self):
+		return transducer
+	
+
 
 class MainWindow(BoxLayout):
 	treeDisplay = ObjectProperty(None)
@@ -226,6 +231,7 @@ class MainWindow(BoxLayout):
 		self.pan = PanManager(self.treeDisplay)
 		self.addremovenodes = AddRemoveNodeManager(self.treeDisplay, main, self.deadkey)
 		self.changelabel = ChangeLabelManager(self.treeDisplay, self.treeLabel, self.deadkey, main)
+		self.importTree = ImportTreeManager(main, self.treeDisplay, self.treeLabel)
 
 
 class TreeApp(App):
